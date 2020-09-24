@@ -89,7 +89,7 @@ def _raffle(rsvps, attendances):
 def _winners(raffle, tickets_available):
     """
     Selects winners from all members on the waitlist.
-    Gives higher chances to people with more historical attendances.
+    Gives higher chances to people with more past attendances.
     """
     _LOGGER.info("Selecting winners.")
     winners = raffle[raffle.response == "waitlist"].sample(
