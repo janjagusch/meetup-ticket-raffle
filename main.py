@@ -27,7 +27,6 @@ CLIENT_SECRET = os.environ["MEETUP_CLIENT_SECRET"]
 EVENT_ID = os.environ["MEETUP_EVENT_ID"]
 GROUP_ID = os.environ["MEETUP_GROUP_ID"]
 PROJECT_ID = os.environ["MEETUP_PROJECT_ID"]
-REDIRECT_URI = os.environ["MEETUP_REDIRECT_URI"]
 TICKETS_MAX = int(os.environ["MEETUP_TICKETS_MAX"])
 TOKEN_BLOB = os.environ["MEETUP_TOKEN_BLOB"]
 TOKEN_BUCKET = os.environ["MEETUP_TOKEN_BUCKET"]
@@ -43,7 +42,8 @@ def _rsvps():
     rsvps = pd.concat(CLIENT.scan(url=f"/{GROUP_ID}/events/{EVENT_ID}/rsvps"))
     rsvps["member_id"] = rsvps["member"].apply(lambda row: row["id"])
     rsvps["member_name"] = rsvps["member"].apply(lambda row: row["name"])
-    rsvps = rsvps[["member_id", "member_name", "response"]]
+    rsvps["attendees"] = rsvps["guests"] + 1
+    rsvps = rsvps[["member_id", "member_name", "response", "attendees"]]
     return rsvps
 
 
@@ -134,11 +134,15 @@ def main():
     4. Adds winners to guestlist.
     """
     rsvps = _rsvps()
-    tickets_taken = rsvps[rsvps.response == "yes"].shape[0]
+    tickets_taken = rsvps[rsvps.response == "yes"]["attendees"].sum()
+    _LOGGER.info(f"{tickets_taken} tickets taken.")
     tickets_available = max(0, TICKETS_MAX - tickets_taken)
+    _LOGGER.info(f"{tickets_available} tickets available.")
+    waitlist = rsvps[rsvps.response == "waitlist"]["attendees"].sum()
+    _LOGGER.info(f"{waitlist} membes on the waitlist.")
     attendances = _attendances()
     raffle = _raffle(rsvps, attendances)
-    winners = _winners(raffle, tickets_available)
+    winners = _winners(raffle, min(tickets_available, waitlist))
     if ADD_TO_GUESTLIST:
         for winner_id in winners:
             _add_to_guestlist(winner_id)
