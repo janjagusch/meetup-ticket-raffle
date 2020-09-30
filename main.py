@@ -147,7 +147,7 @@ def main():
     if ADD_TO_GUESTLIST:
         for winner_id in winners:
             _add_to_guestlist(winner_id)
-            time.sleep(0.1)
+            time.sleep(0.5)
 
 
 if __name__ == "__main__":
