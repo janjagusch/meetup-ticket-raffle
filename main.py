@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+import time
 
 import numpy as np
 import pandas as pd
@@ -146,6 +147,7 @@ def main():
     if ADD_TO_GUESTLIST:
         for winner_id in winners:
             _add_to_guestlist(winner_id)
+            time.sleep(0.1)
 
 
 if __name__ == "__main__":
